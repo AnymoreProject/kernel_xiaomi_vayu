@@ -64,6 +64,9 @@ static unsigned int adrenoboost = 3;
 #endif
 
 static unsigned int adrenoboost = 10000;
+static unsigned int adrenoboost = 1;
+#endif
+
 static u64 suspend_time;
 static u64 suspend_start;
 static unsigned long acc_total, acc_relative_busy;
@@ -164,6 +167,7 @@ static DEVICE_ATTR(adrenoboost, 0644,
 #endif
 static DEVICE_ATTR(adrenoboost, 0644,
 		adrenoboost_show, adrenoboost_save);
+#endif
 
 static DEVICE_ATTR(gpu_load, 0444, gpu_load_show, NULL);
 
@@ -178,6 +182,7 @@ static const struct device_attribute *adreno_tz_attr_list[] = {
 		&dev_attr_adrenoboost,
 #endif
 		&dev_attr_adrenoboost,
+#endif
 		NULL
 };
 
@@ -443,9 +448,9 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq)
 		scm_data[0] = level;
 		scm_data[1] = priv->bin.total_time;
 		if (refresh_rate > 60)
-			scm_data[2] = priv->bin.busy_time * refresh_rate / 60 + (level * adrenoboost);
+			scm_data[2] = priv->bin.busy_time * refresh_rate / 60;
 		else
-			scm_data[2] = priv->bin.busy_time + (level * adrenoboost);
+			scm_data[2] = priv->bin.busy_time;
 		scm_data[3] = context_count;
 		__secure_tz_update_entry3(scm_data, sizeof(scm_data),
 					&val, sizeof(val), priv);
