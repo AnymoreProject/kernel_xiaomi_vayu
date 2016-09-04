@@ -60,10 +60,10 @@ config IOSCHED_SIO
 
 config IOSCHED_ZEN
 	tristate "Zen I/O scheduler"
-	default y
+	default n
 	---help---
-	  FCFS, dispatches are back-inserted, deadlines ensure fairness.
-	  Should work best with devices where there is no travel delay.
+	FCFS, dispatches are back-inserted, deadlines ensure fairness.
+        Should work best with devices where there is no travel delay.
 
 config IOSCHED_ANXIETY
 	tristate "Anxiety I/O Scheduler"
@@ -107,6 +107,12 @@ choice
 	config DEFAULT_NOOP
 		bool "No-op"
 
+	config DEFAULT_ZEN
+		bool "ZEN" if IOSCHED_ZEN=y
+
+	config DEFAULT_NOOP
+		bool "No-op"
+
 endchoice
 
 config DEFAULT_IOSCHED
@@ -116,6 +122,8 @@ config DEFAULT_IOSCHED
 	default "anxiety" if DEFAULT_ANXIETY
 	default "fiops" if DEFAULT_FIOPS
 	default "sio" if DEFAULT_SIO
+	default "zen" if DEFAULT_ZEN
+	default "noop" if DEFAULT_NOOP
 	default "zen" if DEFAULT_ZEN
 	default "noop" if DEFAULT_NOOP
 
