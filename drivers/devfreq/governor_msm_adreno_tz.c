@@ -65,6 +65,7 @@ static unsigned int adrenoboost = 3;
 
 static unsigned int adrenoboost = 10000;
 static unsigned int adrenoboost = 1;
+static unsigned int adrenoboost = 0;
 #endif
 
 static u64 suspend_time;
