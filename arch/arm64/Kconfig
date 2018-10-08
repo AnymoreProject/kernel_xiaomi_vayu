@@ -319,6 +319,8 @@ source "init/Kconfig"
 
 source "kernel/Kconfig.freezer"
 
+source "arch/arm64/hotplug/Kconfig"
+
 source "arch/arm64/Kconfig.platforms"
 
 menu "Bus support"
