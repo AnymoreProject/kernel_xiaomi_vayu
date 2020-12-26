@@ -83,6 +83,7 @@
 		qcom,gpu-quirk-cx-gdsc;
 
 		qcom,idle-timeout = <58>; //msecs
+		qcom,no-nap;
 
 		qcom,highest-bank-bit = <15>;
 
@@ -367,7 +368,7 @@
 
 			qcom,gmu-pwrlevel@1 {
 				reg = <1>;
-				qcom,gmu-freq = <200000000>;
+				qcom,gmu-freq = <500000000>;
 			};
 		};
 
