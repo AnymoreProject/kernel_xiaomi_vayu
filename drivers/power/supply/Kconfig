@@ -615,4 +615,8 @@ source "drivers/power/supply/qcom/Kconfig"
 source "drivers/power/supply/maxim/Kconfig"
 source "drivers/power/supply/ti/Kconfig"
 
+# vayu
+source "drivers/power/supply/maxim_vayu/Kconfig"
+source "drivers/power/supply/ti_vayu/Kconfig"
+
 endif # POWER_SUPPLY
