@@ -271,13 +271,13 @@ void touch_irq_boost(void)
 		return;
 
 	now = ktime_to_us(ktime_get());
-	if (now - last_input_time < (input_boost_ms * USEC_PER_MSEC))
+	if ((now - last_input_time) < (input_boost_ms * USEC_PER_MSEC))
 		return;
 
-	if (work_pending(&input_boost_work))
+	if (queuing_blocked(&cpu_boost_worker, &input_boost_work))
 		return;
 
-	queue_work(cpu_boost_wq, &input_boost_work);
+	kthread_queue_work(&cpu_boost_worker, &input_boost_work);
 
 	last_input_time = ktime_to_us(ktime_get());
 }
