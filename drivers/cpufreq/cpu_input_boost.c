@@ -21,6 +21,22 @@
 #endif
 
 static unsigned int __read_mostly enabled = 1;
+
+static int __init read_enabled_status(char *s)
+{
+    int EStats = 0;
+	if (s)
+		EStats = simple_strtoul(s, NULL, 0);
+
+    if (EStats > 0)
+        enabled = true;
+    else
+        enabled = false;
+
+	return 1;
+}
+__setup("zyc.cib=", read_enabled_status);
+
 module_param(enabled, uint, 0644);
 static bool __read_mostly skip_prime_cores = false;
 module_param(skip_prime_cores, bool, 0644);
