@@ -20,7 +20,7 @@
 #include <uapi/linux/sched/types.h>
 #endif
 
-static unsigned int __read_mostly enabled = 1;
+static unsigned int __read_mostly enabled = 0;
 
 static int __init read_enabled_status(char *s)
 {
@@ -29,9 +29,9 @@ static int __init read_enabled_status(char *s)
 		EStats = simple_strtoul(s, NULL, 0);
 
     if (EStats > 0)
-        enabled = true;
+        enabled = 1;
     else
-        enabled = false;
+        enabled = 0;
 
 	return 1;
 }
