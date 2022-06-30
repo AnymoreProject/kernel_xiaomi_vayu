@@ -350,6 +350,9 @@ static int msm_drm_notifier_cb(struct notifier_block *nb, unsigned long action,
 	struct msm_drm_notifier *evdata = data;
 	int *blank = evdata->data;
 
+	if (enabled == 0)
+		return NOTIFY_OK;
+
 	/* Parse framebuffer blank events as soon as they occur */
 	if (action != MSM_DRM_EARLY_EVENT_BLANK)
 		return NOTIFY_OK;
@@ -372,7 +375,9 @@ static void cpu_input_boost_input_event(struct input_handle *handle,
 {
 	struct boost_drv *b = handle->handler->private;
 
-	__cpu_input_boost_kick(b);
+	if (enabled == 1)
+		__cpu_input_boost_kick(b);
+
 }
 
 static int cpu_input_boost_input_connect(struct input_handler *handler,
