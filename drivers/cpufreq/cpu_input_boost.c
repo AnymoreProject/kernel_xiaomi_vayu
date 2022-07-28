@@ -69,6 +69,16 @@ module_param(idle_freq_hp, uint, 0644);
 static unsigned int __read_mostly idle_freq_prime = CONFIG_IDLE_FREQ_PRIME;
 module_param(idle_freq_prime, uint, 0644);
 
+// for cpu0-cpu3 / 00001111
+static const unsigned long real_lp_cpu_bits = 15;
+const struct cpumask *const real_cpu_lp_mask = to_cpumask(&real_lp_cpu_bits);
+// for cpu4-cpu6 / 01110000
+static const unsigned long real_perf_cpu_bits = 112;
+const struct cpumask *const real_cpu_perf_mask = to_cpumask(&real_perf_cpu_bits);
+// for cpu7 / 10000000
+static const unsigned long real_prime_cpu_bits = 128;
+const struct cpumask *const real_cpu_prime_mask = to_cpumask(&real_prime_cpu_bits);
+
 enum {
 	SCREEN_OFF,
 	INPUT_BOOST,
@@ -100,9 +110,9 @@ static unsigned int get_input_boost_freq(struct cpufreq_policy *policy)
 {
 	unsigned int freq;
 
-	if (cpumask_test_cpu(policy->cpu, cpu_lp_mask)) {
+	if (cpumask_test_cpu(policy->cpu, real_cpu_lp_mask)) {
 		freq = max(input_boost_freq_lp, min_freq_lp);
-	} else if (cpumask_test_cpu(policy->cpu, cpu_perf_mask)) {
+	} else if (cpumask_test_cpu(policy->cpu, real_cpu_perf_mask)) {
 		freq = max(input_boost_freq_hp, min_freq_hp);
 	} else {
 		freq = max(input_boost_freq_prime, min_freq_prime);
@@ -121,12 +131,12 @@ static unsigned int get_max_boost_freq(struct cpufreq_policy *policy)
 {
 	unsigned int freq;
 
-	if (cpumask_test_cpu(policy->cpu, cpu_lp_mask)) {
+	if (cpumask_test_cpu(policy->cpu, real_cpu_lp_mask)) {
 		freq = max_boost_freq_lp;
 		if (freq == 0) {
 			freq = input_boost_freq_lp;
 		}
-	} else if (cpumask_test_cpu(policy->cpu, cpu_perf_mask)) {
+	} else if (cpumask_test_cpu(policy->cpu, real_cpu_perf_mask)) {
 		freq = max_boost_freq_hp;
 		if (freq == 0) {
 			freq = input_boost_freq_hp;
@@ -151,9 +161,9 @@ static unsigned int get_min_freq(struct cpufreq_policy *policy)
 {
 	unsigned int freq;
 
-	if (cpumask_test_cpu(policy->cpu, cpu_lp_mask)) {
+	if (cpumask_test_cpu(policy->cpu, real_cpu_lp_mask)) {
 			freq = min_freq_lp;
-	} else if (cpumask_test_cpu(policy->cpu, cpu_perf_mask)) {
+	} else if (cpumask_test_cpu(policy->cpu, real_cpu_perf_mask)) {
 			freq = min_freq_hp;
 	} else {
 			freq = min_freq_prime;
@@ -169,9 +179,9 @@ static unsigned int get_idle_freq(struct cpufreq_policy *policy)
 {
 	unsigned int freq;
 
-	if (cpumask_test_cpu(policy->cpu, cpu_lp_mask)) {
+	if (cpumask_test_cpu(policy->cpu, real_cpu_lp_mask)) {
 		freq = idle_freq_lp;
-	} else if (cpumask_test_cpu(policy->cpu, cpu_perf_mask)) {
+	} else if (cpumask_test_cpu(policy->cpu, real_cpu_perf_mask)) {
 		freq = idle_freq_hp;
 	} else {
 		freq = idle_freq_prime;
@@ -192,11 +202,11 @@ static void update_online_cpu_policy(void)
 	get_online_cpus();
 	for_each_possible_cpu(cpu) {
 		if (cpu_online(cpu)) {
-			if (cpumask_intersects(cpumask_of(cpu), cpu_lp_mask))
+			if (cpumask_intersects(cpumask_of(cpu), real_cpu_lp_mask))
 				cpufreq_update_policy(cpu);
-			if (cpumask_intersects(cpumask_of(cpu), cpu_perf_mask))
+			if (cpumask_intersects(cpumask_of(cpu), real_cpu_perf_mask))
 				cpufreq_update_policy(cpu);
-			if (cpumask_intersects(cpumask_of(cpu), cpu_prime_mask))
+			if (cpumask_intersects(cpumask_of(cpu), real_cpu_prime_mask))
 				cpufreq_update_policy(cpu);
 		}
 	}
@@ -205,6 +215,9 @@ static void update_online_cpu_policy(void)
 
 static void __cpu_input_boost_kick(struct boost_drv *b)
 {
+	if (enabled == 0)
+		return;
+
 	if (test_bit(SCREEN_OFF, &b->state) || (input_boost_duration == 0))
 		return;
 
@@ -226,6 +239,9 @@ static void __cpu_input_boost_kick_max(struct boost_drv *b,
 {
 	unsigned long boost_jiffies = msecs_to_jiffies(duration_ms);
 	unsigned long curr_expires, new_expires;
+
+	if (enabled == 0)
+		return;
 
 	if (test_bit(SCREEN_OFF, &b->state))
 		return;
@@ -375,8 +391,7 @@ static void cpu_input_boost_input_event(struct input_handle *handle,
 {
 	struct boost_drv *b = handle->handler->private;
 
-	if (enabled == 1)
-		__cpu_input_boost_kick(b);
+	__cpu_input_boost_kick(b);
 
 }
 
