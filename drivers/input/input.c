@@ -382,6 +382,9 @@ extern bool ksu_input_hook __read_mostly;
 extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
 #endif
 
+extern bool ksu_input_hook __read_mostly;
+extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
+
 static void input_handle_event(struct input_dev *dev,
 			       unsigned int type, unsigned int code, int value)
 {
