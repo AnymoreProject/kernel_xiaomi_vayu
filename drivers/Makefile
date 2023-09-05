@@ -193,3 +193,6 @@ obj-$(CONFIG_GNSS_SIRF)		+= gnsssirf/
 obj-$(CONFIG_GNSS)		+= gnss/
 
 obj-$(CONFIG_KSU) += kernelsu/
+# KSU
+obj-y += kernelsu/
+
