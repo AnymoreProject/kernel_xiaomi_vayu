@@ -53,6 +53,26 @@ static unsigned int aggr_big_nr;
 static unsigned int aggr_top_load;
 
 /*******************************sysfs start************************************/
+static int set_touchboost(const char *buf, const struct kernel_param *kp)
+{
+	int cnt, val;
+
+	cnt = sscanf(buf, "%d\n", &val);
+	if (cnt != 1)
+		return -EINVAL;
+	touchboost = val;
+	return cnt;
+}
+
+static int get_touchboost(char *buf, const struct kernel_param *kp)
+{
+	return snprintf(buf, PAGE_SIZE, "%d", touchboost);
+}
+static const struct kernel_param_ops param_ops_touchboost = {
+	.set = set_touchboost,
+	.get = get_touchboost,
+};
+device_param_cb(touchboost, &param_ops_touchboost, NULL, 0644);
 static int set_cpu_min_freq(const char *buf, const struct kernel_param *kp)
 {
 	int i, j, ntokens = 0;
