@@ -52,6 +52,8 @@ static struct task_struct *events_notify_thread;
 static unsigned int aggr_big_nr;
 static unsigned int aggr_top_load;
 
+static int touchboost = 1;
+
 /*******************************sysfs start************************************/
 static int set_touchboost(const char *buf, const struct kernel_param *kp)
 {
