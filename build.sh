@@ -1,26 +1,27 @@
 #!/bin/bash
+# Thanks to https://t.me/itsclhex for build script and source
 sudo apt update && sudo -H apt-get install bc python2 ccache binutils-aarch64-linux-gnu cpio
 
 kernel_dir="${PWD}"
 CCACHE=$(command -v ccache)
 objdir="${kernel_dir}/out"
-anykernel=$HOME/anykernel
+anykernel=/workspace/Ubuntu-SSH/anykernel
 builddir="${kernel_dir}/build"
 ZIMAGE=$kernel_dir/out/arch/arm64/boot/Image
-kernel_name="Rectilia-vayu"
+kernel_name="AnymoreProject-Kernel-vayu"
 zip_name="$kernel_name-$(date +"%d%m%Y-%H%M").zip"
-TC_DIR=$HOME/tc
-CLANG_DIR=$HOME/tc/clang-r498229b
+TC_DIR=/workspace/
+CLANG_DIR=/workspace/Ubuntu-SSH/clang-19
 export CONFIG_FILE="vayu_defconfig"
 export ARCH="arm64"
-export KBUILD_BUILD_HOST=clhexftw
-export KBUILD_BUILD_USER=home
+export KBUILD_BUILD_HOST=rizalbrambe
+export KBUILD_BUILD_USER=t.me
 
 export PATH="$CLANG_DIR/bin:$PATH"
 
 if ! [ -d "$CLANG_DIR" ]; then
     echo "Toolchain not found! Cloning to $CLANG_DIR..."
-    if ! git clone -q --depth=1 --single-branch https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/ -b master $TC_DIR; then
+    if ! git clone -q --depth=1 --single-branch https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r510928.git -b 14.0 $TC_DIR; then
         echo "Cloning failed! Aborting..."
         exit 1
     fi
@@ -60,7 +61,7 @@ completion()
     COMPILED_DTBO=arch/arm64/boot/dtbo.img
     if [[ -f ${COMPILED_IMAGE} && ${COMPILED_DTBO} ]]; then
 
-        git clone -q https://github.com/clhexftw/AnyKernel3 -b master $anykernel
+        git clone -q https://github.com/AnymoreProject/AnyKernel3.git -b master $anykernel
 
         mv -f $ZIMAGE ${COMPILED_DTBO} $anykernel
 
@@ -69,12 +70,12 @@ completion()
         find . -name "*.zip" -type f -delete
         zip -r AnyKernel.zip *
         mv AnyKernel.zip $zip_name
-        mv $anykernel/$zip_name $HOME/$zip_name
+        mv $anykernel/$zip_name /workspace/Ubuntu-SSH/$zip_name
         rm -rf $anykernel
         END=$(date +"%s")
         DIFF=$(($END - $START))
-        curl --upload-file $HOME/$zip_name https://free.keep.sh; echo
-        rm $HOME/$zip_name
+        curl --upload-file /workspace/Ubuntu-SSH/$zip_name https://transfer.sh; echo
+        rm /workspace/Ubuntu-SSH/$zip_name
         echo -e ${LGR} "############################################"
         echo -e ${LGR} "############# OkThisIsEpic!  ##############"
         echo -e ${LGR} "############################################${NC}"
