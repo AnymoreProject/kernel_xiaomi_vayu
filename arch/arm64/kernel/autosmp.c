@@ -33,8 +33,6 @@
 #include <linux/fb.h>
 
 #define ASMP_TAG "AutoSMP: "
-#define ASMP_ENABLE true
-
 
 struct asmp_load_data {
     u64 prev_cpu_idle;
@@ -52,7 +50,6 @@ static struct notifier_block asmp_nb;
 static bool started = false;
 
 static struct asmp_param_struct {
-    bool enabled;
     unsigned int delay;
     bool scroff_single_core;
     unsigned int max_cpus_bc;
@@ -66,16 +63,15 @@ static struct asmp_param_struct {
     unsigned int cycle_up;
     unsigned int cycle_down;
 } asmp_param = {
-    .enabled = ASMP_ENABLE,
     .delay = 100,
     .scroff_single_core = true,
     .max_cpus_bc = 4, /* Max cpu Big cluster ! */
     .max_cpus_lc = 4, /* Max cpu Little cluster ! */
-    .min_cpus_bc = 1, /* Minimum Big cluster online */
-    .min_cpus_lc = 1, /* Minimum Little cluster online */
+    .min_cpus_bc = 2, /* Minimum Big cluster online */
+    .min_cpus_lc = 2, /* Minimum Little cluster online */
     .cpufreq_up_bc = 80,
-    .cpufreq_up_lc = 60,
-    .cpufreq_down_bc = 40,
+    .cpufreq_up_lc = 70,
+    .cpufreq_down_bc = 25,
     .cpufreq_down_lc = 30,
     .cycle_up = 1,
     .cycle_down = 1,
@@ -83,6 +79,7 @@ static struct asmp_param_struct {
 
 static unsigned int cycle = 0, delay0 = 0;
 static unsigned long delay_jif = 0;
+int asmp_enabled __read_mostly = 0;
 
 static void asmp_online_cpus(unsigned int cpu)
 {
@@ -134,7 +131,7 @@ static int get_cpu_loads(unsigned int cpu)
         max_load = load;
 
     return max_load;
-} 
+}
 
 static void update_prev_idle(unsigned int cpu)
 {
@@ -375,7 +372,7 @@ static int __ref asmp_start(void)
 
 err_out:
 
-    asmp_param.enabled = false;
+    asmp_enabled = 0;
     return ret;
 }
 
@@ -410,7 +407,7 @@ static int set_enabled(const char *val,
     int ret;
 
     ret = param_set_bool(val, kp);
-    if (asmp_param.enabled) {
+    if (asmp_enabled) {
 
         asmp_start();
 
@@ -427,7 +424,7 @@ static struct kernel_param_ops module_ops = {
     .get = param_get_bool,
 };
 
-module_param_cb(enabled, &module_ops, &asmp_param.enabled, 0644);
+module_param_cb(enabled, &module_ops, &asmp_enabled, 0644);
 MODULE_PARM_DESC(enabled, "hotplug/unplug cpu cores based on cpu load");
 
 /***************************** SYSFS START *****************************/
@@ -437,6 +434,14 @@ struct global_attr {
     ssize_t (*show)(struct kobject *, struct attribute *, char *);
     ssize_t (*store)(struct kobject *, struct attribute *, const char *, size_t);
 };
+
+#define define_one_global_ro(_name)                 \
+static struct global_attr _name =                   \
+__ATTR(_name, 0444, show_##_name, NULL)
+
+#define define_one_global_rw(_name)                 \
+static struct global_attr _name =                   \
+__ATTR(_name, 0644, show_##_name, store_##_name)
 
 struct kobject *asmp_kobject;
 
@@ -605,9 +610,6 @@ static int __init asmp_init(void) {
         pr_warn(ASMP_TAG"ERROR, create sysfs kobj");
 
     pr_info(ASMP_TAG"initialized\n");
-    
-    if (asmp_param.enabled)
-        asmp_start();
 
     return 0;
 }
