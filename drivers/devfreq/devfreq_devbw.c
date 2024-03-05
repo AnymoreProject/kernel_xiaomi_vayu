@@ -25,6 +25,7 @@
 #include <linux/mutex.h>
 #include <linux/interrupt.h>
 #include <linux/devfreq.h>
+#include <linux/devfreq_boost.h>
 #include <linux/slab.h>
 #include <linux/of.h>
 #include <linux/of_fdt.h>

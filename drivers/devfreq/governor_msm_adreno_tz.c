@@ -60,11 +60,6 @@ static DEFINE_SPINLOCK(suspend_lock);
 #define TAG "msm_adreno_tz: "
 
 #if 1
-static unsigned int adrenoboost = 3;
-#endif
-
-static unsigned int adrenoboost = 10000;
-static unsigned int adrenoboost = 1;
 static unsigned int adrenoboost = 0;
 #endif
 
@@ -106,7 +101,6 @@ static ssize_t adrenoboost_save(struct device *dev,
 	int input;
 	sscanf(buf, "%d ", &input);
 	if (input < 0 || input > 3) {
-	if (input < 0 || input > 50000) {
 		adrenoboost = 0;
 	} else {
 		adrenoboost = input;
@@ -166,9 +160,6 @@ static ssize_t suspend_time_show(struct device *dev,
 static DEVICE_ATTR(adrenoboost, 0644,
 		adrenoboost_show, adrenoboost_save);
 #endif
-static DEVICE_ATTR(adrenoboost, 0644,
-		adrenoboost_show, adrenoboost_save);
-#endif
 
 static DEVICE_ATTR(gpu_load, 0444, gpu_load_show, NULL);
 
@@ -180,8 +171,6 @@ static const struct device_attribute *adreno_tz_attr_list[] = {
 		&dev_attr_gpu_load,
 		&dev_attr_suspend_time,
 #if 1
-		&dev_attr_adrenoboost,
-#endif
 		&dev_attr_adrenoboost,
 #endif
 		NULL
