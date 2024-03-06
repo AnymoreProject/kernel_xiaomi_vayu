@@ -60,22 +60,6 @@ completion()
     COMPILED_IMAGE=arch/arm64/boot/Image
     COMPILED_DTBO=arch/arm64/boot/dtbo.img
     if [[ -f ${COMPILED_IMAGE} && ${COMPILED_DTBO} ]]; then
-
-        git clone -q https://github.com/AnymoreProject/AnyKernel3.git -b master $anykernel
-
-        mv -f $ZIMAGE ${COMPILED_DTBO} $anykernel
-
-        cd $anykernel
-        find . -name "*.zip" -type f
-        find . -name "*.zip" -type f -delete
-        zip -r AnyKernel.zip *
-        mv AnyKernel.zip $zip_name
-        mv $anykernel/$zip_name /workspace/Ubuntu-SSH/$zip_name
-        rm -rf $anykernel
-        END=$(date +"%s")
-        DIFF=$(($END - $START))
-        curl --upload-file /workspace/Ubuntu-SSH/$zip_name https://transfer.sh; echo
-        rm /workspace/Ubuntu-SSH/$zip_name
         echo -e ${LGR} "############################################"
         echo -e ${LGR} "############# OkThisIsEpic!  ##############"
         echo -e ${LGR} "############################################${NC}"
