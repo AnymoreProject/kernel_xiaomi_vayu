@@ -1,0 +1,98 @@
+build.yml
+name: Build Sanciko Kernel
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+env:
+  KERNEL_NAME: SancikoKernel
+  DEVICE: vayu
+  DEFCONFIG: vayu_defconfig
+  CLANG_BRANCH: 20
+  ANYKERNEL_BRANCH: master
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Kernel Source
+        uses: actions/checkout@v4
+
+      - name: Setup Build Environment
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            git curl wget zip unzip \
+            build-essential bc bison flex \
+            libssl-dev libelf-dev \
+            python3 cpio kmod \
+            clang lld llvm
+
+      - name: Clone Proton Clang
+        run: |
+          git clone --depth=1 \
+          https://github.com/kdrag0n/proton-clang.git \
+          clang
+
+      - name: Clone AnyKernel3
+        run: |
+          git clone --depth=1 \
+          https://github.com/osm0sis/AnyKernel3.git \
+          AnyKernel3
+
+      - name: Set Kernel Branding
+        run: |
+          echo 'CONFIG_LOCALVERSION="-SancikoKernel"' >> arch/arm64/configs/${DEFCONFIG}
+
+      - name: Export Build Variables
+        run: |
+          echo "ARCH=arm64" >> $GITHUB_ENV
+          echo "SUBARCH=arm64" >> $GITHUB_ENV
+          echo "KBUILD_BUILD_USER=Sanciko" >> $GITHUB_ENV
+          echo "KBUILD_BUILD_HOST=GitHub" >> $GITHUB_ENV
+
+      - name: Build Kernel
+        run: |
+          export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
+
+          make O=out \
+          ARCH=arm64 \
+          ${DEFCONFIG}
+
+          make -j$(nproc --all) O=out \
+          ARCH=arm64 \
+          CC=clang \
+          LLVM=1 \
+          LLVM_IAS=1
+
+      - name: Prepare AnyKernel3
+        run: |
+          cp out/arch/arm64/boot/Image AnyKernel3/
+
+          if [ -f out/arch/arm64/boot/dtb.img ]; then
+            cp out/arch/arm64/boot/dtb.img AnyKernel3/
+          fi
+
+          if [ -f out/arch/arm64/boot/dtbo.img ]; then
+            cp out/arch/arm64/boot/dtbo.img AnyKernel3/
+          fi
+
+      - name: Rename AnyKernel
+        run: |
+          sed -i 's/kernel.string=.*/kernel.string=Sanciko Kernel by Son/g' AnyKernel3/anykernel.sh
+
+      - name: Create Flashable ZIP
+        run: |
+          cd AnyKernel3
+          zip -r9 ../SancikoKernel-v1.0-${DEVICE}.zip *
+
+      - name: Upload Kernel ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: SancikoKernel
+          path: SancikoKernel-v1.0-${{ env.DEVICE }}.zip
