@@ -1,4 +1,3 @@
-build.yml
 name: Build Sanciko Kernel
 
 on:
