@@ -1,5 +1,6 @@
 name: Build NoMount Module
 on:
+  push:
   workflow_dispatch:
 jobs:
   build:
@@ -9,20 +10,20 @@ jobs:
 
       - name: Download NoMount Files Automatically
         run: |
-              mkdir -p fs/nomount
-              git clone --depth=1 https://github.com/nomount/kernel.git temp_nomount
-              cp -r temp_nomount/kernel/fs/nomount/* fs/nomount/
-              rm -rf temp_nomount
+          mkdir -p fs/nomount
+          git clone --depth=1 https://github.com/nomount/kernel.git temp_nomount
+          cp -r temp_nomount/kernel/fs/nomount/* fs/nomount/
+          rm -rf temp_nomount
 
       - name: Setup Build Environment
         run: |
-              sudo apt-get update
-              sudo apt-get install -y build-essential libncurses-dev bison flex libssl-dev bc git
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses-dev bison flex libssl-dev bc git
 
       - name: Compile nomount.ko
         run: |
-              export ARCH=arm64
-              export SUBARCH=arm64
-              make O=out vayu_defconfig
-              make O=out -j$(nproc) modules_prepare
-              make O=out -j$(nproc) CONFIG_NOMOUNT=m M=fs/nomount
+          export ARCH=arm64
+          export SUBARCH=arm64
+          make O=out vayu_defconfig
+          make O=out -j$(nproc) modules_prepare
+          make O=out -j$(nproc) CONFIG_NOMOUNT=m M=fs/nomount
