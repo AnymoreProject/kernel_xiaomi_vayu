@@ -1,25 +1,28 @@
 name: Build NoMount Module
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up build environment
+      - name: Download NoMount Files Automatically
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libncurses-dev bison flex libssl-dev bc git
+              mkdir -p fs/nomount
+              git clone --depth=1 https://github.com/nomount/kernel.git temp_nomount
+              cp -r temp_nomount/kernel/fs/nomount/* fs/nomount/
+              rm -rf temp_nomount
 
-      - name: Compile NoMount Module
+      - name: Setup Build Environment
         run: |
-          export ARCH=arm64
-          export SUBARCH=arm64
-          # إعداد النواة وتجميع الموديول الخارجي
-          make O=out vayu_defconfig
-          make O=out -j$(nproc) modules_prepare
-          make O=out -j$(nproc) CONFIG_NOMOUNT=m M=fs/nomount
+              sudo apt-get update
+              sudo apt-get install -y build-essential libncurses-dev bison flex libssl-dev bc git
+
+      - name: Compile nomount.ko
+        run: |
+              export ARCH=arm64
+              export SUBARCH=arm64
+              make O=out vayu_defconfig
+              make O=out -j$(nproc) modules_prepare
+              make O=out -j$(nproc) CONFIG_NOMOUNT=m M=fs/nomount
