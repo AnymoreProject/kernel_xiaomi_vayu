@@ -18,6 +18,12 @@ jobs:
           export ARCH=arm64
           export SUBARCH=arm64
           make O=out vayu_defconfig
+          
+          # تجاوز مشكلة توافق مجمع أوبونتو الحديث مع حماية الكيرنل القديم
+          sed -i 's/CONFIG_CC_STACKPROTECTOR_STRONG=y/# CONFIG_CC_STACKPROTECTOR_STRONG is not set/' out/.config || true
+          sed -i 's/CONFIG_CC_STACKPROTECTOR=y/# CONFIG_CC_STACKPROTECTOR is not set/' out/.config || true
+          
+          make O=out -j$(nproc) olddefconfig
           make O=out -j$(nproc) modules_prepare
           make O=out -j$(nproc) CONFIG_NOMOUNT=m M=fs/nomount
 
