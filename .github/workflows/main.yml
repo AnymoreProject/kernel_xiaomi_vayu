@@ -8,17 +8,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download NoMount Files Securely
+      - name: Download NoMount via Codeload
         run: |
           mkdir -p fs/nomount
-          GIT_TERMINAL_PROMPT=0 git clone --depth=1 https://github.com/nomount/kernel.git temp_nomount
-          cp -r temp_nomount/kernel/fs/nomount/* fs/nomount/ 2>/dev/null || cp -r temp_nomount/fs/nomount/* fs/nomount/ 2>/dev/null || true
-          rm -rf temp_nomount
+          curl -L -o nomount.zip https://codeload.github.com/nomount/kernel/zip/refs/heads/main || curl -L -o nomount.zip https://codeload.github.com/nomount/kernel/zip/refs/heads/master
+          unzip -q nomount.zip
+          cp -r kernel-*/kernel/fs/nomount/* fs/nomount/ 2>/dev/null || cp -r kernel-*/fs/nomount/* fs/nomount/ 2>/dev/null || true
+          rm -rf nomount.zip kernel-*
 
       - name: Setup Build Environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libncurses-dev bison flex libssl-dev bc git
+          sudo apt-get install -y build-essential libncurses-dev bison flex libssl-dev bc git unzip
 
       - name: Compile nomount.ko
         run: |
