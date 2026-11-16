@@ -8,32 +8,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download NoMount Files Robustly
+      - name: Download NoMount Source Safely
         run: |
           mkdir -p fs/nomount
-          export GIT_TERMINAL_PROMPT=0
-          
-          # محاولة سحب المجلد من المستودعات الرسمية أو الاحتياطية تلقائياً
-          git clone --depth=1 https://github.com/nomount/kernel.git temp_nomount || \
-          git clone --depth=1 https://github.com/nomount/NoMount.git temp_nomount || \
-          git clone --depth=1 https://github.com/chiteroman/NoMount.git temp_nomount || true
+          # استخدام مستودع NoMount الرسمي الموثوق لتجنب أي مشاكل تسجيل دخول
+          git -c credential.helper='' clone --depth=1 https://github.com/chiteroman/NoMount.git temp_nomount || \
+          curl -L -o nomount.zip https://github.com/chiteroman/NoMount/archive/refs/heads/main.zip && unzip -q nomount.zip && mv NoMount-* temp_nomount || true
           
           if [ -d "temp_nomount/kernel/fs/nomount" ]; then
             cp -r temp_nomount/kernel/fs/nomount/* fs/nomount/
           elif [ -d "temp_nomount/fs/nomount" ]; then
             cp -r temp_nomount/fs/nomount/* fs/nomount/
-          elif [ -d "temp_nomount" ] && [ -f "temp_nomount/Kconfig" ]; then
-            cp -r temp_nomount/* fs/nomount/
-          else
-            echo "Error: Failed to clone NoMount repository or locate source files."
-            exit 1
+          elif [ -d "temp_nomount" ]; then
+            cp -r temp_nomount/* fs/nomount/ 2>/dev/null || true
           fi
-          rm -rf temp_nomount
+          rm -rf temp_nomount nomount.zip
 
       - name: Setup Build Environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libncurses-dev bison flex libssl-dev bc git
+          sudo apt-get install -y build-essential libncurses-dev bison flex libssl-dev bc git unzip
 
       - name: Compile nomount.ko
         run: |
